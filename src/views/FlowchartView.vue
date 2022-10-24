@@ -95,7 +95,7 @@ export default {
         console.log(this.$route.query.dbidentification);
         console.log(this.$route.query.dbsecret);
 
-        await axios.post("https://help.socialbot.dev/flowchart-user-info.php", {email: this.$route.query.dbidentification, pwd: this.$route.query.dbsecret})
+        await axios.post("http://localhost/khaled/flowchart-user-info.php", {email: this.$route.query.dbidentification, pwd: this.$route.query.dbsecret})
         .then(response => {
             console.log(response);
             if(response.data.user.id){
@@ -128,14 +128,14 @@ export default {
             })
         },
         async postBotconfig(){
-            await axios.post(`https://help.socialbot.dev/add-flowchart.php?id=${this.user.id}`, this.backup)
+            await axios.post(`http://localhost/khaled/add-flowchart.php?id=${this.user.id}`, this.backup)
             .then(response => {
                 console.log(response);
             })
             .catch(error => {
                 console.log(JSON.stringify(error));
             })
-            await axios.post('https://webhooks.socialbot.dev/webhook/new-bot', 
+            await axios.post('https://webhook.site/ee8073eb-3cea-403d-99f5-8b8c0a18d785', 
                 {
                     user_id: this.user.id,
                     account_id: this.user.account_id,
