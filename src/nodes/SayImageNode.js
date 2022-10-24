@@ -3,8 +3,8 @@ import { Node } from "@baklavajs/core";
 export class SayImageNode extends Node {
     constructor() {
         super();
-        this.type = "SayImageNode";
-        this.name = "SayImage";
+        this.type = "إرسال صورة";
+        this.name = "إرسال صورة";
         this.addInputInterface("input")
         this.addOption("Image url", "InputOption", "");
         this.addOutputInterface("Next");

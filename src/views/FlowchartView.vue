@@ -3,36 +3,31 @@ wchartView.vue
     <div class="flowchart">
         <div v-show="isLoadingFirst" class="loader-div">
             <span class="loader">
-                <FacebookLoader  />
+                <FacebookLoader :size="loaderSize" />
             </span>
         </div>
 
         <div v-show="isLoadingPost" id="dimScreen">
-            <FacebookLoader size="150" />
+            <FacebookLoader :size="loaderSize" />
         </div>
 
         <template v-if="isLogin && !isLoadingFirst">
             <div>
-                <button @click="save()" class="swal2-confirm swal2-styled" style="float: right;">Save</button>
+                <button @click="save()" class="swal2-confirm swal2-styled" style="float: right;background-color:#28a745">حفظ</button>
+                <button @click="video()" class="swal2-confirm swal2-styled" style="float: right;">طريقة بناء الرد الألي</button>
             </div>
             <div style="height: 100vh; width: 100vw">
-                <!-- <button @click="chowText()">show</button>
-                <button @click="restore()">restore</button>
-                <button @click="reset()">reset</button> -->
-                <!-- <button type="button" class="swal2-confirm swal2-styled" style="display: inline-block;" aria-label="">OK</button> -->
-                <hint-overlay />
                 <baklava-editor :plugin="viewPlugin" />
             </div>
         </template>
         <template v-else>
-            <h1>Not Authoriazed</h1>
+            <h1>Not Authorized</h1>
         </template>
     </div>
 </template>
 
 <script>
 import { FacebookLoader } from 'vue-spinners-css';
-import HintOverlay from "@/components/HintOverlay.vue";
 import TextareaOption from "@/components/CustomOptions/TextareaOption.vue";
 
 import { Editor } from "@baklavajs/core";
@@ -54,7 +49,7 @@ import axios from 'axios';
 
 export default {
     name: 'FlowchartView',
-    components: { HintOverlay, FacebookLoader },
+    components: { FacebookLoader },
     data() {
         return {
             editor: new Editor(),
@@ -65,6 +60,7 @@ export default {
             isLogin: false,
             isLoadingFirst: true,
             isLoadingPost: false,
+            loaderSize: 150,
             user: null
         };
     },
@@ -86,26 +82,20 @@ export default {
 
         // register the nodes we have defined, so they can be
         // added by the user as well as saved & loaded.
-        this.editor.registerNodeType("SayTextNode", SayTextNode);
-        this.editor.registerNodeType("AskQuestionNode", AskQuestionNode);
-        this.editor.registerNodeType("StartNode", StartNode);
-        this.editor.registerNodeType("SwitchNode", SwitchNode);
-        this.editor.registerNodeType("SayImageNode", SayImageNode);
-        this.editor.registerNodeType("SayVideoNode", SayVideoNode);
-        this.editor.registerNodeType("SayUrlNode", SayUrlNode);
-        this.editor.registerNodeType("GoToStartNode", GoToStartNode);
-        this.editor.registerNodeType("GoToEndNode", GoToEndNode);
-
-        const node1 = this.addNodeWithCoordinates(StartNode, 100, 140);
-        const node2 = this.addNodeWithCoordinates(SayTextNode, 400, 140);
-
-        this.editor.addConnection(node1.getInterface("Next"), node2.getInterface("input"));
-
-        this.engine.calculate();
+        this.editor.registerNodeType("إرسال رسالة", SayTextNode);
+        this.editor.registerNodeType("إرسال سؤال", AskQuestionNode);
+        this.editor.registerNodeType("البداية", StartNode);
+        this.editor.registerNodeType("تحويل إجابة العميل", SwitchNode);
+        this.editor.registerNodeType("إرسال صورة", SayImageNode);
+        this.editor.registerNodeType("إرسال فيديو", SayVideoNode);
+        this.editor.registerNodeType("إرسال رابط ملف", SayUrlNode);
+        this.editor.registerNodeType("إذهب للبداية", GoToStartNode);
+        this.editor.registerNodeType("إذهب لخدمة العملاء", GoToEndNode);
 
         console.log(this.$route.query.dbidentification);
+        console.log(this.$route.query.dbsecret);
 
-        await axios.post("https://help.socialbot.dev/flowchart-user-info.php", {email: this.$route.query.dbidentification})
+        await axios.post("https://help.socialbot.dev/flowchart-user-info.php", {email: this.$route.query.dbidentification, pwd: this.$route.query.dbsecret})
         .then(response => {
             console.log(response);
             if(response.data.user.id){
@@ -117,7 +107,7 @@ export default {
                 }
 
                 if(response.data.user.permisions == "salla"){
-                    this.editor.registerNodeType("SallaNode", SallaNode);
+                    this.editor.registerNodeType("تتبع الطلب", SallaNode);
                 }
             }
         })
@@ -129,6 +119,14 @@ export default {
 
     },
     methods: {
+        video(){
+            this.$swal.fire({
+                title: 'طريقة بناء الرد الألي',
+                width: '60%',
+                confirmButtonText: 'حسنا',
+                html: '<video width="100%" height="100%" controls><source src="http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4" type="video/mp4"><source src="http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4" type="video/ogg">Your browser does not support the video tag.</video>'
+            })
+        },
         async postBotconfig(){
             await axios.post(`https://help.socialbot.dev/add-flowchart.php?id=${this.user.id}`, this.backup)
             .then(response => {
@@ -149,7 +147,7 @@ export default {
                 this.$swal.fire({
                     position: 'top-end',
                     icon: 'success',
-                    text: 'Your work has been saved',
+                    text: 'تم حفظ عملك',
                     showConfirmButton: false,
                     timer: 2000
                 })
@@ -171,13 +169,14 @@ export default {
             let cms = this.editor.save();
             this.backup = cms;
             this.$swal.fire({
-                title: 'Are you sure?',
-                text: "You want to save and use this flowchart",
+                title: 'هل انت متأكد ؟',
+                text: "تريد حفظ هذا الرد الألي واستخدامه",
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#3085d6',
                 cancelButtonColor: '#d33',
-                confirmButtonText: 'Yes, save it!'
+                confirmButtonText: 'نعم احفظه!',
+                cancelButtonText: 'لا'
             }).then((result) => {
                 if (result.isConfirmed) {
                     this.algo(cms);
@@ -190,13 +189,13 @@ export default {
 
             this.text = "";
 
-            let startNodeCount = 0, stop = 1, loop = 1;
+            let startNodeCount = 0, stop = 1, loop = 1, msg_errors = [];
 
             let currentNode, currentNodeId, csml = [];
 
             // get startNode
             for(let i=0; i<cms.nodes.length; i++){
-                if(cms.nodes[i].type == "StartNode"){
+                if(cms.nodes[i].type == "البداية"){
                     startNodeCount++;
                     currentNode = cms.nodes[i];
                     csml.push(currentNode);
@@ -206,28 +205,42 @@ export default {
             if(startNodeCount < 1 || startNodeCount > 1){
                 this.$swal({
                     icon: 'error',
-                    title: 'Oops...',
-                    text: 'must contain at least one StartNode!',
+                    title: 'تحذير...',
+                    text: 'يجب أن يحتوي على عقدة بدء واحدة!',
                 });
+                this.isLoadingPost = false;
             } else {
-                let valid = true, error_msg = "";
+                let valid = true;
 
                 for(let i=0; i<cms.nodes.length; i++){
-                    if(cms.nodes[i].type == "SwitchNode"){
+                    if(cms.nodes[i].type == "تحويل إجابة العميل"){
                         for(let j=1; j<cms.nodes[i].interfaces.length; j++){
                             let connectionToId = this.getConnectionToId(cms.connections, cms.nodes[i].interfaces[j][1].id);
                             if(connectionToId == undefined){
                                 valid = false
-                                error_msg += ", Check SwitchNode cases connections"
+                                if(msg_errors.indexOf("، تحقق من اتصالات حالات تحويل إجابة العميل") < 0){
+                                    msg_errors.push("، تحقق من اتصالات حالات تحويل إجابة العميل");
+                                }
+                            }
+                        }
+
+                        for(let j=2; j<cms.nodes[i].options.length; j++){
+                            if(cms.nodes[i].options[j][1] == ""){
+                                valid = false
+                                if(msg_errors.indexOf("، يجب ألا تكون قيمة حالات تحويل إجابة العميل فارغة") < 0){
+                                    msg_errors.push("، يجب ألا تكون قيمة حالات تحويل إجابة العميل فارغة");
+                                }
                             }
                         }
 
                         let inputId = cms.nodes[i].interfaces[0][1].id;
                         let connectionFromId = this.getConnectionFromId(cms.connections, inputId)
                         let fromNode = this.getNodeByConnectionFromId(connectionFromId, cms.nodes)
-                        if(!fromNode || fromNode.type != "AskQuestionNode"){
+                        if(!fromNode || fromNode.type != "إرسال سؤال"){
                             valid = false;
-                            error_msg += ", SwitchNode it's should have AskQuestionNode Before it"
+                            if(msg_errors.indexOf("، تحويل إجابة العميل يجب أن يكون قبلها إرسال سؤال") < 0){
+                                msg_errors.push("، تحويل إجابة العميل يجب أن يكون قبلها إرسال سؤال");
+                            }
                         }
                     }
                 }
@@ -239,13 +252,13 @@ export default {
                     while(currentNode){
                         stop = 1;
                         loop++;
-                        if(currentNode.type != "SwitchNode"){
+                        if(currentNode.type != "تحويل إجابة العميل"){
                             for(let i=0; i<cms.nodes.length; i++){
-                                if(cms.nodes[i].type != "StartNode"){
+                                if(cms.nodes[i].type != "البداية"){
                                     if(cms.nodes[i].interfaces[0][1].id == currentNodeId){
                                         csml.push(cms.nodes[i]);
                                         currentNode = cms.nodes[i];
-                                        if(cms.nodes[i].type != "SwitchNode"){
+                                        if(cms.nodes[i].type != "تحويل إجابة العميل" && cms.nodes[i].type != "إذهب لخدمة العملاء" && cms.nodes[i].type != "إذهب للبداية"){
                                             this.text += this.getNodeScriptText(currentNode);
                                             currentNodeId = this.getConnectionToId(cms.connections, cms.nodes[i].interfaces[1][1].id);
                                         } else{
@@ -261,7 +274,15 @@ export default {
                             
                             currentNodeId = this.getConnectionToId(cms.connections, result[result.length-1].interfaces[1][1].id);
                             for(let i=0; i<result.length; i++){
-                                this.text += `if( ${this.getSwitchNodeOperation(currentNode.options[0][1], currentNode.options[i+2][1])} ){ \n`;
+                                if(i == result.length-1){
+                                    this.text += `else { \n`;
+                                } else {
+                                    if(i == 0 ){
+                                        this.text += `if( ${this.getSwitchNodeOperation(currentNode.options[0][1], currentNode.options[i+2][1])} ){ \n`;
+                                    } else {
+                                        this.text += `else if( ${this.getSwitchNodeOperation(currentNode.options[0][1], currentNode.options[i+2][1])} ){ \n`;
+                                    }
+                                }
                                 let caseBody = this.handleCase(cms.nodes, cms.connections, result[i]);
                                 for(let j=0; j<caseBody.length; j++){
                                     csml.push(caseBody[j]);
@@ -276,10 +297,14 @@ export default {
                     }
                     setTimeout(() => {this.postBotconfig();}, 1000);
                 } else {
+                    let error_plain_text = "";
+                    for(let i=0; i<msg_errors.length; i++){
+                        error_plain_text+= msg_errors[i];
+                    }
                     this.$swal({
                         icon: 'error',
-                        title: 'Oops...',
-                        html: '<p> There is error on the flowchart'+ error_msg +'</p>',
+                        title: 'تحذير...',
+                        html: "<p> يوجد خطأ في بناء الرد الألي"+error_plain_text+"</p>",
                     });
 
                     this.isLoadingPost = false;
@@ -288,31 +313,42 @@ export default {
             console.log(this.text);
         },
         handleCase(nodes, connections, caseNode){
-            let result = [], stop = 1, loop = 1, currentNode = caseNode, currentNodeId = this.getConnectionToId(connections, currentNode.interfaces[1][1].id);
+            var result = [], stop = 1, loop = 1, currentNode = caseNode, currentNodeId = this.getConnectionToId(connections, currentNode.interfaces[1][1].id);
             result.push(currentNode);
+            this.text += this.getNodeScriptText(currentNode);
             while(currentNode){
                 stop = 1;
-                if(currentNode.type != "SwitchNode"){
-                    this.text += this.getNodeScriptText(currentNode);
+                if(currentNode.type != "تحويل إجابة العميل"){
+                    // this.text += this.getNodeScriptText(currentNode);
                     for(let i=0; i<nodes.length; i++){
                         if(nodes[i].interfaces[0][1].id == currentNodeId){
                             result.push(nodes[i]);
                             currentNode = nodes[i];
-                            if(nodes[i].type != "SwitchNode" && nodes[i].type != "GoToEndNode" && nodes[i].type != "GoToStartNode"){
+                            this.text += this.getNodeScriptText(currentNode);
+                            if(nodes[i].type != "تحويل إجابة العميل" && nodes[i].type != "إذهب لخدمة العملاء" && nodes[i].type != "إذهب للبداية"){
                                 currentNodeId = this.getConnectionToId(connections, nodes[i].interfaces[1][1].id);
                             } else{
                                 currentNodeId = null;
                             }
                             stop = 0;
                         }
-                    }                    
+                    }
                 } else {
                     stop = 1;
                     let result2 = this.handleSwitch(currentNode, nodes, connections);
                     
                     currentNodeId = this.getConnectionToId(connections, result2[result2.length-1].interfaces[1][1].id);
                     for(let i=0; i<result2.length; i++){
-                        this.text += `if( ${this.getSwitchNodeOperation(currentNode.options[0][1], currentNode.options[i+2][1])} ){ \n`;
+                        // this.text += `if( ${this.getSwitchNodeOperation(currentNode.options[0][1], currentNode.options[i+2][1])} ){ \n`;
+                        if(i == result2.length-1){
+                            this.text += `else { \n`;
+                        } else {
+                            if(i == 0 ){
+                                this.text += `if( ${this.getSwitchNodeOperation(currentNode.options[0][1], currentNode.options[i+2][1])} ){ \n`;
+                            } else {
+                                this.text += `else if( ${this.getSwitchNodeOperation(currentNode.options[0][1], currentNode.options[i+2][1])} ){ \n`;
+                            }
+                        }
                         let caseBody = this.handleCase(nodes, connections, result2[i]);
                         for(let j=0; j<caseBody.length; j++){
                             result.push(caseBody[j]);
@@ -353,17 +389,14 @@ export default {
             return result;
         },
         getNodeByConnectionFromId(id, nodes){
-            let result;
             for(let i=0; i<nodes.length; i++){
-                try{
+                if(nodes[i].type != "إذهب لخدمة العملاء" && nodes[i].type != "إذهب للبداية" && nodes[i].type != "البداية"){
                     if(nodes[i].interfaces[1][1].id == id){
-                        result = nodes[i];
+                        return nodes[i];
                     }
-                } catch {
-                    result = null;
                 }
             }
-            return result;
+            return null;
         },
         getConnectionFromId(connections, id){
             let result;
@@ -376,38 +409,34 @@ export default {
         },
         getNodeScriptText(node){
             let result = "";
-            if(node.type == "SayTextNode"){
+            if(node.type == "إرسال رسالة"){
                 result = 'say \\"'+node.options[0][1]+' \\" \n';
             }
-            if(node.type == "AskQuestionNode"){
+            if(node.type == "إرسال سؤال"){
                 result = 'say \\"'+node.options[0][1]+'\\" \nhold \nremember input = event\n';
             }
 
-            if(node.type == "SayImageNode"){
+            if(node.type == "إرسال صورة"){
                 result = 'say Image(\\"'+node.options[0][1]+'\\") \n';
             }
 
-            if(node.type == "SayVideoNode"){
+            if(node.type == "إرسال فيديو"){
                 result = 'say Video(\\"'+node.options[0][1]+'\\") \n';
             }
 
-            if(node.type == "SayUrlNode"){
+            if(node.type == "إرسال رابط ملف"){
                 result = 'say Url(\\"'+node.options[0][1]+'\\") \n';
             }
 
-            if(node.type == "GoToEndNode"){
+            if(node.type == "إذهب لخدمة العملاء"){
                 result = "goto end \n";
             }
 
-            if(node.type == "GoToEndNode"){
-                result = "goto end \n";
-            }
-
-            if(node.type == "GoToStartNode"){
+            if(node.type == "إذهب للبداية"){
                 result = "goto start \n";
             }
 
-            if(node.type == "SallaNode"){
+            if(node.type == "تتبع الطلب"){
                 result = `
                     say \\"ممكن تزودنا برقم الطلب المكون من 8 ارقام\\" \n
                     hold \n

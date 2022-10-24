@@ -3,8 +3,8 @@ import { Node } from "@baklavajs/core";
 export class SayUrlNode extends Node {
     constructor() {
         super();
-        this.type = "SayUrlNode";
-        this.name = "SayUrl";
+        this.type = "إرسال رابط ملف";
+        this.name = "إرسال رابط ملف";
         this.addInputInterface("input")
         this.addOption("Enter url", "InputOption", "");
         this.addOutputInterface("Next");

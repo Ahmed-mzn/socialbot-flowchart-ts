@@ -3,8 +3,8 @@ import { Node } from "@baklavajs/core";
 export class AskQuestionNode extends Node {
     constructor() {
         super();
-        this.type = "AskQuestionNode";
-        this.name = "AskQuestion";
+        this.type = "إرسال سؤال";
+        this.name = "إرسال سؤال";
         this.addInputInterface("input")
         this.addOption("Text", "TextareaOption", "your question ? ");
         this.addOutputInterface("Next");

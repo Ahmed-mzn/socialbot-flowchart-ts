@@ -3,8 +3,8 @@ import { Node } from "@baklavajs/core";
 export class SallaNode extends Node {
     constructor() {
         super();
-        this.type = "SallaNode";
-        this.name = "Salla";
+        this.type = "تتبع الطلب";
+        this.name = "تتبع الطلب";
         this.addInputInterface("input")
         this.addOutputInterface("Next");
     }
