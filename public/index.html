@@ -15,4 +15,26 @@
     <div id="app"></div>
     <!-- built files will be auto injected -->
   </body>
+  <script>
+    setTimeout(() => {
+      let items = document.getElementsByClassName("flex-fill");
+      for(let i=0; i<items.length;i++){
+          if(items[i].textContent == "Add Node"){
+              items[i].textContent = "إضافة عقدة"
+          }
+          if(items[i].textContent == "Copy Nodes"){
+              items[i].textContent = "نسخ العقدة"
+          }
+          if(items[i].textContent == "Paste Nodes"){
+              items[i].textContent = "لصق العقدة"
+          }
+          if(items[i].textContent == "Rename"){
+              items[i].textContent = "إعادة تسمية"
+          }
+          if(items[i].textContent == "Delete"){
+              items[i].textContent = "حذف"
+          }
+      }
+    }, 2000);
+  </script>
 </html>

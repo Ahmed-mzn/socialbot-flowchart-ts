@@ -95,7 +95,7 @@ export default {
         console.log(this.$route.query.dbidentification);
         console.log(this.$route.query.dbsecret);
 
-        await axios.post("http://localhost/khaled/flowchart-user-info.php", {email: this.$route.query.dbidentification, pwd: this.$route.query.dbsecret})
+        await axios.post("https://help.socialbot.dev/flowchart-user-info.php", {email: this.$route.query.dbidentification, pwd: this.$route.query.dbsecret})
         .then(response => {
             console.log(response);
             if(response.data.user.id){
@@ -116,7 +116,6 @@ export default {
         })
 
         setTimeout(() => {this.isLoadingFirst = false}, 1000);
-
     },
     methods: {
         video(){
@@ -128,14 +127,14 @@ export default {
             })
         },
         async postBotconfig(){
-            await axios.post(`http://localhost/khaled/add-flowchart.php?id=${this.user.id}`, this.backup)
+            await axios.post(`https://help.socialbot.dev/add-flowchart.php?id=${this.user.id}`, this.backup)
             .then(response => {
                 console.log(response);
             })
             .catch(error => {
                 console.log(JSON.stringify(error));
             })
-            await axios.post('https://webhook.site/ee8073eb-3cea-403d-99f5-8b8c0a18d785', 
+            await axios.post('https://webhooks.socialbot.dev/webhook/new-bot', 
                 {
                     user_id: this.user.id,
                     account_id: this.user.account_id,
@@ -258,8 +257,8 @@ export default {
                                     if(cms.nodes[i].interfaces[0][1].id == currentNodeId){
                                         csml.push(cms.nodes[i]);
                                         currentNode = cms.nodes[i];
+                                        this.text += this.getNodeScriptText(currentNode);
                                         if(cms.nodes[i].type != "تحويل إجابة العميل" && cms.nodes[i].type != "إذهب لخدمة العملاء" && cms.nodes[i].type != "إذهب للبداية"){
-                                            this.text += this.getNodeScriptText(currentNode);
                                             currentNodeId = this.getConnectionToId(cms.connections, cms.nodes[i].interfaces[1][1].id);
                                         } else{
                                             currentNodeId = null;
@@ -272,7 +271,8 @@ export default {
                             stop = 1;
                             let result = this.handleSwitch(currentNode, cms.nodes, cms.connections);
                             
-                            currentNodeId = this.getConnectionToId(cms.connections, result[result.length-1].interfaces[1][1].id);
+                            //currentNodeId = this.getConnectionToId(cms.connections, result[result.length-1].interfaces[1][1].id);
+                            currentNodeId = null;
                             for(let i=0; i<result.length; i++){
                                 if(i == result.length-1){
                                     this.text += `else { \n`;
@@ -313,8 +313,13 @@ export default {
             console.log(this.text);
         },
         handleCase(nodes, connections, caseNode){
-            var result = [], stop = 1, loop = 1, currentNode = caseNode, currentNodeId = this.getConnectionToId(connections, currentNode.interfaces[1][1].id);
+            var result = [], stop = 1, loop = 1, currentNode = caseNode, currentNodeId;
             result.push(currentNode);
+            if(currentNode.type != "إذهب لخدمة العملاء" && currentNode.type != "إذهب للبداية"){
+                currentNodeId = this.getConnectionToId(connections, currentNode.interfaces[1][1].id)
+            } else {
+                currentNodeId = null;
+            }
             this.text += this.getNodeScriptText(currentNode);
             while(currentNode){
                 stop = 1;
@@ -337,7 +342,7 @@ export default {
                     stop = 1;
                     let result2 = this.handleSwitch(currentNode, nodes, connections);
                     
-                    currentNodeId = this.getConnectionToId(connections, result2[result2.length-1].interfaces[1][1].id);
+                    //currentNodeId = this.getConnectionToId(connections, result2[result2.length-1].interfaces[1][1].id);
                     for(let i=0; i<result2.length; i++){
                         // this.text += `if( ${this.getSwitchNodeOperation(currentNode.options[0][1], currentNode.options[i+2][1])} ){ \n`;
                         if(i == result2.length-1){
